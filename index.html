@@ -15,6 +15,11 @@
 
 <main>
   <section class="input-panel">
+    <p class="help-text">
+      On a 7Mai (and similar) dashcam's SD card, look in the <code>.GPS</code> folder
+      (e.g. <code>D:\.GPS\GPSData000008.txt</code>) &mdash; each <code>.txt</code> file there is one trip's GPS
+      log. Load one of those files below to plot it.
+    </p>
     <div id="dropzone" class="dropzone">
       <p>Drag &amp; drop a .txt GPS log here, or click to choose a file</p>
       <input type="file" id="fileInput" accept=".txt,text/plain" hidden />
