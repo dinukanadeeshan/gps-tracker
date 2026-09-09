@@ -78,16 +78,43 @@
     renderTrack(points);
   }
 
+  // Large logs (hundreds of thousands of points) would freeze the browser if
+  // we drew one Leaflet layer per point/segment, and Math.max(...arr) blows
+  // the call stack past ~100k elements — so rendering is done off a
+  // downsampled subset while stats are computed from the full data.
+  const MAX_RENDER_POINTS = 4000;
+  const MAX_MARKERS = 400;
+
+  function maxOf(arr, keyFn) {
+    let m = -Infinity;
+    for (const item of arr) {
+      const v = keyFn(item);
+      if (v > m) m = v;
+    }
+    return m;
+  }
+
+  function downsample(points, maxCount) {
+    if (points.length <= maxCount) return points;
+    const step = Math.ceil(points.length / maxCount);
+    const sampled = [];
+    for (let i = 0; i < points.length; i += step) sampled.push(points[i]);
+    if (sampled[sampled.length - 1] !== points[points.length - 1]) {
+      sampled.push(points[points.length - 1]);
+    }
+    return sampled;
+  }
+
   function renderTrack(points) {
     trackLayer.clearLayers();
 
-    const maxSpeed = Math.max(...points.map((p) => p.speedKmh), 1);
-    const latlngs = points.map((p) => [p.lat, p.lon]);
+    const maxSpeed = Math.max(maxOf(points, (p) => p.speedKmh), 1);
+    const renderPoints = downsample(points, MAX_RENDER_POINTS);
 
     // Speed-colored polyline segments
-    for (let i = 0; i < points.length - 1; i++) {
-      const a = points[i];
-      const b = points[i + 1];
+    for (let i = 0; i < renderPoints.length - 1; i++) {
+      const a = renderPoints[i];
+      const b = renderPoints[i + 1];
       const color = speedToColor(a.speedKmh, maxSpeed);
       L.polyline(
         [
@@ -98,10 +125,9 @@
       ).addTo(trackLayer);
     }
 
-    // Sparse point markers with popups (every point but small, to avoid overload use circleMarkers)
-    const step = Math.max(1, Math.floor(points.length / 500)); // cap markers for very long tracks
-    for (let i = 0; i < points.length; i += step) {
-      const p = points[i];
+    // Sparse point markers with popups
+    const markerPoints = downsample(renderPoints, MAX_MARKERS);
+    for (const p of markerPoints) {
       L.circleMarker([p.lat, p.lon], {
         radius: 3,
         color: speedToColor(p.speedKmh, maxSpeed),
@@ -122,7 +148,8 @@
       .bindPopup(`<strong>End</strong><br>${pointPopupHtml(end)}`)
       .addTo(trackLayer);
 
-    map.fitBounds(L.latLngBounds(latlngs), { padding: [30, 30] });
+    const bounds = L.latLngBounds(renderPoints.map((p) => [p.lat, p.lon]));
+    map.fitBounds(bounds, { padding: [30, 30] });
 
     updateStats(points);
     updateLegend(maxSpeed);
@@ -165,9 +192,10 @@
       totalMeters += haversineMeters(points[i], points[i + 1]);
     }
 
-    const speeds = points.map((p) => p.speedKmh);
-    const maxSpeed = Math.max(...speeds);
-    const avgSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
+    const maxSpeed = maxOf(points, (p) => p.speedKmh);
+    let speedSum = 0;
+    for (const p of points) speedSum += p.speedKmh;
+    const avgSpeed = speedSum / points.length;
 
     const validTimes = points.map((p) => p.timestamp).filter(Boolean);
     const startTime = validTimes[0];

@@ -23,17 +23,22 @@ the browser; Leaflet is loaded from a CDN.
 
 ## Log format
 
-Tab-separated index, then a comma-separated payload:
+One comma-separated record per line:
 
 ```
-<index>\t<timestamp>,<flagB>,<flagA>,<speed>km/h,<lat>,<lon>,<eventFlag>,<videoFile>
+<timestamp>,<flagB>,<flagA>,<speed>km/h,<lat>,<lon>,<eventFlag>,<videoFile>
 ```
 
 Example:
 
 ```
-1	2026-05-23 11:02:24,B,A,000km/h,6.722485,79.907490,1,20260523-190154-068420.MP4
+2026-05-23 11:02:24,B,A,000km/h,6.722485,79.907490,1,20260523-190154-068420.MP4
 ```
+
+Some exports prepend a `<row index>\t` before the record (a per-row counter
+added by whatever viewer wrote it out, not part of the GPS payload itself).
+The parser tolerates an optional leading `\t`-separated index and strips it
+before splitting on commas, so both forms work.
 
 - `timestamp`: `YYYY-MM-DD HH:MM:SS`, parsed as local time.
 - `flagB` / `flagA`: near-constant fields of unknown meaning in observed samples; currently ignored by the parser but kept in mind — do not assume they're always literally `"B"`/`"A"`.
