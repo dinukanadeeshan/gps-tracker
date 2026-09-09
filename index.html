@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPS Track Viewer</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header>
+  <h1>GPS Track Viewer</h1>
+  <p class="subtitle">Load a GPS dashcam/tracker log (.txt) and see the route on the map.</p>
+</header>
+
+<main>
+  <section class="input-panel">
+    <div id="dropzone" class="dropzone">
+      <p>Drag &amp; drop a .txt GPS log here, or click to choose a file</p>
+      <input type="file" id="fileInput" accept=".txt,text/plain" hidden />
+    </div>
+
+    <details class="paste-panel">
+      <summary>Or paste raw log text</summary>
+      <textarea id="pasteArea" placeholder="1&#9;2026-05-23 11:02:24,B,A,000km/h,6.722485,79.907490,1,20260523-190154-068420.MP4"></textarea>
+      <button id="parsePasteBtn">Plot pasted data</button>
+    </details>
+
+    <p id="errorMsg" class="error" hidden></p>
+    <p id="fileName" class="filename" hidden></p>
+  </section>
+
+  <section id="statsPanel" class="stats-panel" hidden>
+    <div class="stat"><span class="stat-label">Points</span><span id="statPoints" class="stat-value">-</span></div>
+    <div class="stat"><span class="stat-label">Distance</span><span id="statDistance" class="stat-value">-</span></div>
+    <div class="stat"><span class="stat-label">Duration</span><span id="statDuration" class="stat-value">-</span></div>
+    <div class="stat"><span class="stat-label">Max speed</span><span id="statMaxSpeed" class="stat-value">-</span></div>
+    <div class="stat"><span class="stat-label">Avg speed</span><span id="statAvgSpeed" class="stat-value">-</span></div>
+    <div class="stat"><span class="stat-label">Start time</span><span id="statStart" class="stat-value">-</span></div>
+    <div class="stat"><span class="stat-label">End time</span><span id="statEnd" class="stat-value">-</span></div>
+  </section>
+
+  <section id="legend" class="legend" hidden>
+    <span class="legend-title">Speed</span>
+    <span id="legendMin">0</span>
+    <div class="legend-gradient"></div>
+    <span id="legendMax">max</span>
+  </section>
+
+  <div id="map"></div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="parser.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
