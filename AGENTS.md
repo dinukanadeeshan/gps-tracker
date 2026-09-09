@@ -18,7 +18,7 @@ the browser; Leaflet is loaded from a CDN.
 - [index.html](index.html) — page structure (dropzone, paste panel, stats panel, legend, map container).
 - [style.css](style.css) — all styling. Dark theme by default; keep it self-contained (no external CSS frameworks).
 - [parser.js](parser.js) — pure parsing logic: `parseGPSLog(rawText) -> { points, skipped }`. No DOM access. Keep it testable in isolation.
-- [app.js](app.js) — DOM wiring, Leaflet rendering, stats computation. Depends on `parser.js` and the global `L` (Leaflet) loaded in `index.html`.
+- [app.js](app.js) — DOM wiring, Leaflet rendering, stats computation, and date/date-range filtering. Depends on `parser.js` and the global `L` (Leaflet) loaded in `index.html`. Keeps the full parsed log in `allPoints`; the date dropdown and From/To range inputs filter down to a subset and re-render from it — `renderTrack()` never mutates `allPoints`, so Reset always has the original data to go back to.
 - [sample-data/](sample-data/) — a small real-world sample log for manual testing.
 
 ## Log format

@@ -16,6 +16,15 @@
   const fileNameEl = document.getElementById('fileName');
   const statsPanel = document.getElementById('statsPanel');
   const legend = document.getElementById('legend');
+  const filterPanel = document.getElementById('filterPanel');
+  const dateSelect = document.getElementById('dateSelect');
+  const fromInput = document.getElementById('fromInput');
+  const toInput = document.getElementById('toInput');
+  const applyRangeBtn = document.getElementById('applyRangeBtn');
+  const resetRangeBtn = document.getElementById('resetRangeBtn');
+  const filterSummary = document.getElementById('filterSummary');
+
+  let allPoints = []; // full parsed dataset for the currently loaded log
 
   dropzone.addEventListener('click', () => fileInput.click());
   dropzone.addEventListener('dragover', (e) => {
@@ -69,13 +78,113 @@
       showError('No valid GPS points found in this file. Check the format and try again.');
       statsPanel.hidden = true;
       legend.hidden = true;
+      filterPanel.hidden = true;
       return;
     }
     if (skipped > 0) {
       showError(`Loaded ${points.length} points (${skipped} line(s) skipped as invalid).`);
     }
 
+    allPoints = points;
+    setupFilterPanel(points);
     renderTrack(points);
+  }
+
+  function setupFilterPanel(points) {
+    const times = points.map((p) => p.timestamp).filter(Boolean);
+    if (times.length === 0) {
+      filterPanel.hidden = true;
+      return;
+    }
+
+    const dates = [...new Set(times.map((t) => toDateKey(t)))].sort();
+    dateSelect.innerHTML = '<option value="">All dates</option>';
+    for (const dateKey of dates) {
+      const count = times.filter((t) => toDateKey(t) === dateKey).length;
+      const opt = document.createElement('option');
+      opt.value = dateKey;
+      opt.textContent = `${dateKey} (${count.toLocaleString()} pts)`;
+      dateSelect.appendChild(opt);
+    }
+
+    const minTime = times[0];
+    const maxTime = times[times.length - 1];
+    fromInput.min = toDatetimeLocal(minTime);
+    fromInput.max = toDatetimeLocal(maxTime);
+    toInput.min = toDatetimeLocal(minTime);
+    toInput.max = toDatetimeLocal(maxTime);
+    fromInput.value = toDatetimeLocal(minTime);
+    toInput.value = toDatetimeLocal(maxTime);
+
+    filterSummary.textContent = '';
+    filterPanel.hidden = false;
+  }
+
+  dateSelect.addEventListener('change', () => {
+    const dateKey = dateSelect.value;
+    if (!dateKey) {
+      applyFilter(null, null);
+      return;
+    }
+    const dayStart = new Date(`${dateKey}T00:00:00`);
+    const dayEnd = new Date(`${dateKey}T23:59:59.999`);
+    fromInput.value = toDatetimeLocal(dayStart);
+    toInput.value = toDatetimeLocal(dayEnd);
+    applyFilter(dayStart, dayEnd);
+  });
+
+  applyRangeBtn.addEventListener('click', () => {
+    if (!fromInput.value || !toInput.value) {
+      showError('Pick both a "From" and "To" date/time to apply a range.');
+      return;
+    }
+    const from = new Date(fromInput.value);
+    const to = new Date(toInput.value);
+    if (from > to) {
+      showError('"From" must be before "To".');
+      return;
+    }
+    dateSelect.value = '';
+    applyFilter(from, to);
+  });
+
+  resetRangeBtn.addEventListener('click', () => {
+    dateSelect.value = '';
+    if (allPoints.length) setupFilterPanel(allPoints);
+    applyFilter(null, null);
+  });
+
+  function applyFilter(from, to) {
+    clearError();
+    if (!from || !to) {
+      filterSummary.textContent = '';
+      renderTrack(allPoints);
+      return;
+    }
+    const filtered = allPoints.filter((p) => p.timestamp && p.timestamp >= from && p.timestamp <= to);
+    if (filtered.length === 0) {
+      filterSummary.textContent = 'No points in that range.';
+      return;
+    }
+    filterSummary.textContent = `Showing ${filtered.length.toLocaleString()} of ${allPoints.length.toLocaleString()} points.`;
+    renderTrack(filtered);
+  }
+
+  function toDateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function toDatetimeLocal(date) {
+    const y = date.getFullYear();
+    const mo = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const h = String(date.getHours()).padStart(2, '0');
+    const mi = String(date.getMinutes()).padStart(2, '0');
+    const s = String(date.getSeconds()).padStart(2, '0');
+    return `${y}-${mo}-${d}T${h}:${mi}:${s}`;
   }
 
   // Large logs (hundreds of thousands of points) would freeze the browser if

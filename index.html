@@ -30,6 +30,24 @@
     <p id="fileName" class="filename" hidden></p>
   </section>
 
+  <section id="filterPanel" class="filter-panel" hidden>
+    <div class="filter-row">
+      <label for="dateSelect">Date</label>
+      <select id="dateSelect">
+        <option value="">All dates</option>
+      </select>
+    </div>
+    <div class="filter-row">
+      <label for="fromInput">From</label>
+      <input type="datetime-local" id="fromInput" step="1" />
+      <label for="toInput">To</label>
+      <input type="datetime-local" id="toInput" step="1" />
+      <button id="applyRangeBtn">Apply range</button>
+      <button id="resetRangeBtn" class="secondary">Reset</button>
+    </div>
+    <p id="filterSummary" class="filter-summary"></p>
+  </section>
+
   <section id="statsPanel" class="stats-panel" hidden>
     <div class="stat"><span class="stat-label">Points</span><span id="statPoints" class="stat-value">-</span></div>
     <div class="stat"><span class="stat-label">Distance</span><span id="statDistance" class="stat-value">-</span></div>
