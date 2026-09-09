@@ -6,6 +6,8 @@ trip stats (distance, duration, max/avg speed).
 
 No backend, no build step, no install. Everything runs in your browser.
 
+**Live demo:** https://dinukanadeeshan.github.io/gps-tracker/
+
 ## Usage
 
 Just open [index.html](index.html) in a browser — or serve the folder with
@@ -22,8 +24,11 @@ to see it in action.
 ## Log format
 
 ```
-<index>\t<timestamp>,<flagB>,<flagA>,<speed>km/h,<lat>,<lon>,<eventFlag>,<videoFile>
+<timestamp>,<flagB>,<flagA>,<speed>km/h,<lat>,<lon>,<eventFlag>,<videoFile>
 ```
+
+On a 7Mai (and similar) dashcam's SD card, these live in the `.GPS` folder —
+one `.txt` file per trip (e.g. `D:\.GPS\GPSData000008.txt`).
 
 See [AGENTS.md](AGENTS.md) for the full format notes and project conventions.
 
